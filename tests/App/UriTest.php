@@ -416,17 +416,6 @@ class UriTest extends TestCase
         static::assertEquals($newFragment, $new->getFragment());
     }
 
-    public function testValidateAuthority()
-    {
-        $input_uri = 'https://example.org:80/path/123?search=baz#bar';
-
-        $uri = new Uri($input_uri);
-
-        $method = self::getUriMethod('validateAuthority');
-
-        $method->invoke($uri);
-    }
-
     public function testNormalizeQuery()
     {
         $input_uri = 'https://example.org:80/path/123?search=baz#bar';
@@ -437,5 +426,20 @@ class UriTest extends TestCase
         $result = $method->invokeArgs($uri, ['=']);
 
         self::assertEquals('', $result);
+    }
+
+    /**
+     * @expectedException InvalidArgumentException
+     */
+    public function testValidateAuthority()
+    {
+        $input_uri = '/path/123?search=baz#bar';
+
+        $uri = new Uri($input_uri);
+
+        $methodValidateAuthority = self::getUriMethod('validateAuthority');
+        self::setPropertyValue($uri, 'path', '//foo');
+
+        $methodValidateAuthority->invoke($uri);
     }
 }

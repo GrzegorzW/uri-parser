@@ -16,4 +16,12 @@ class TestCase extends \PHPUnit_Framework_TestCase
         $method->setAccessible(true);
         return $method;
     }
+
+    protected static function setPropertyValue($instance, $name, $value)
+    {
+        $class = new ReflectionClass(Uri::class);
+        $method = $class->getProperty($name);
+        $method->setAccessible(true);
+        $method->setValue($instance, $value);
+    }
 }
