@@ -11,7 +11,7 @@ use App\UriParser;
  * Class UriParserTest
  * @package Tests\App
  */
-class UriParserTest extends \PHPUnit_Framework_TestCase
+class UriParserTest extends TestCase
 {
 
     public function testUriParser()

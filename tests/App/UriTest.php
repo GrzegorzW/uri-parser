@@ -11,7 +11,7 @@ use InvalidArgumentException;
  * Class UriTest
  * @package Tests\App
  */
-class UriTest extends \PHPUnit_Framework_TestCase
+class UriTest extends TestCase
 {
 
     public function testToStringScheme()
@@ -414,5 +414,28 @@ class UriTest extends \PHPUnit_Framework_TestCase
 
         static::assertEquals('bar', $old->getFragment());
         static::assertEquals($newFragment, $new->getFragment());
+    }
+
+    public function testValidateAuthority()
+    {
+        $input_uri = 'https://example.org:80/path/123?search=baz#bar';
+
+        $uri = new Uri($input_uri);
+
+        $method = self::getUriMethod('validateAuthority');
+
+        $method->invoke($uri);
+    }
+
+    public function testNormalizeQuery()
+    {
+        $input_uri = 'https://example.org:80/path/123?=#bar';
+
+        $uri = new Uri($input_uri);
+
+        $method = self::getUriMethod('normalizeQuery');
+        $result = $method->invokeArgs($uri, ['']);
+
+        self::assertEquals('', $result);
     }
 }
