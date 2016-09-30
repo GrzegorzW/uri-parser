@@ -429,12 +429,12 @@ class UriTest extends TestCase
 
     public function testNormalizeQuery()
     {
-        $input_uri = 'https://example.org:80/path/123?=#bar';
+        $input_uri = 'https://example.org:80/path/123?search=baz#bar';
 
         $uri = new Uri($input_uri);
 
         $method = self::getUriMethod('normalizeQuery');
-        $result = $method->invokeArgs($uri, ['']);
+        $result = $method->invokeArgs($uri, ['=']);
 
         self::assertEquals('', $result);
     }
