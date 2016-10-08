@@ -6,11 +6,11 @@ namespace App\Components;
 
 class Fragment extends AbstractComponent
 {
-    private $fragmentRegex = '(?P<fragment>(?<=#).*)$';
-
     public function extract(string $url): string
     {
-        preg_match('~' . $this->fragmentRegex . '~', $url, $matches);
+        $allowedChars = $this->getPchar() . '\/\?)';
+
+        preg_match("~(?P<fragment>(?<=#)[$allowedChars]*)$~", $url, $matches);
 
         return array_key_exists('fragment', $matches) ? $matches['fragment'] : '';
     }

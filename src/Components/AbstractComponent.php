@@ -39,7 +39,7 @@ abstract class AbstractComponent
 
     public function getUnreserved(): string
     {
-        return '[a-zA-Z0-9\-\.\_\~]';
+        return 'a-zA-Z0-9\-\.\_\~';
     }
 
     public function getPctEncoded()
@@ -49,7 +49,8 @@ abstract class AbstractComponent
 
     public function getPchar()
     {
-        return $this->getUnreserved() . $this->getPctEncoded() . $this->getSubDelims() . '\:\@';
+//        todo add pctEncoded
+        return $this->getUnreserved() . $this->getSubDelims() . '\:\@';
     }
 
 }

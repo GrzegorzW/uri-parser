@@ -9,11 +9,22 @@ use Tests\App\TestCase;
 
 class SchemeTest extends TestCase
 {
+    public function schemeProvider()
+    {
+        return [
+            ['https://user:pass@example.org:80/path/123?search=baz#bar', 'https'],
+            ['https://@example.org:80/path/123?search=baz#bar', 'https'],
+            ['http://@example.org/path/123?search=baz#bar', 'http'],
+            ['http://@example.org/path/123?search=baz', 'http'],
+            ['http://@example.org/path/123', 'http'],
+            ['foo://example.com:8042/over/there?name=ferret#nose', 'foo']
+        ];
+    }
 
     /**
-     * @dataProvider validUrlProvider
+     * @dataProvider schemeProvider
      */
-    public function testSchemeSetValue(string $url, string $expectedScheme)
+    public function testSchemeValidUrls(string $url, string $expectedScheme)
     {
         $scheme = new Scheme();
         $extractedValue = $scheme->extract($url);

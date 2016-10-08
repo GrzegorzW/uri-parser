@@ -8,7 +8,9 @@ class Scheme extends AbstractComponent
 {
     public function extract(string $url): string
     {
-        preg_match('~^(?P<scheme>[a-zA-Z][a-zA-Z0-9\-\+\.]*?(?=:))~', $url, $matches);
+        $allowedChars = 'a-zA-Z0-9\-\+\.';
+
+        preg_match("~^(?P<scheme>[a-zA-Z][$allowedChars]*?(?=:))~", $url, $matches);
 
         return array_key_exists('scheme', $matches) ? $matches['scheme'] : '';
     }
