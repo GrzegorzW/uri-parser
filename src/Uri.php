@@ -26,6 +26,11 @@ class Uri implements UriInterface
     const HTTP_DEFAULT_HOST = 'localhost';
 
     /**
+     * @var UriParser
+     */
+    protected $parser;
+
+    /**
      * Scheme component of the URI.
      *
      * @var string
@@ -72,12 +77,12 @@ class Uri implements UriInterface
      */
     private $fragment = '';
 
-    public function __construct(string $uri)
+    public function __construct(string $uri, UriParser $parser)
     {
-        $components = parse_url($uri);
+        $components = $this->parser->parse($uri);
 
         if (false === $components) {
-            throw new InvalidArgumentException(sprintf('Unable to parse URI: ' . $uri));
+            throw new InvalidArgumentException(sprintf('Unable to instantiate URI.'));
         }
 
         $this->setComponents($components);
@@ -333,15 +338,12 @@ class Uri implements UriInterface
      */
     public function withScheme($scheme): Uri
     {
-        $scheme = $this->normalizeScheme((string)$scheme);
         $newUri = clone $this;
 
-        $newUri->scheme = $scheme;
-
+        $newUri->scheme = $this->normalizeScheme((string)$scheme);
         $newUri->removeDefaultPort();
         $newUri->addDefaultHost();
-        $this->validateAuthority();
-
+        $newUri->validateAuthority();
 
         return $newUri;
     }
@@ -360,10 +362,9 @@ class Uri implements UriInterface
             $userInfo .= ':' . $password;
         }
 
-        $userInfo = $this->normalizeChars($userInfo);
         $newUri = clone $this;
 
-        $newUri->userInfo = $userInfo;
+        $newUri->userInfo = $this->normalizeChars($userInfo);
         $newUri->validateAuthority();
 
         return $newUri;
@@ -374,10 +375,9 @@ class Uri implements UriInterface
      */
     public function withHost($host): Uri
     {
-        $host = $this->normalizeHost((string)$host);
         $newUri = clone $this;
 
-        $newUri->host = $host;
+        $newUri->host = $this->normalizeHost((string)$host);
         $newUri->addDefaultHost();
         $newUri->validateAuthority();
 
@@ -409,11 +409,9 @@ class Uri implements UriInterface
      */
     public function withPath($path): Uri
     {
-        $path = $this->normalizePath((string)$path);
-
         $newUri = clone $this;
 
-        $newUri->path = $path;
+        $newUri->path = $this->normalizePath((string)$path);
         $newUri->validateAuthority();
 
         return $newUri;
@@ -426,11 +424,9 @@ class Uri implements UriInterface
      */
     public function withQuery($query): Uri
     {
-        $query = $this->normalizeQuery($query);
-
         $newUri = clone $this;
 
-        $newUri->query = $query;
+        $newUri->query = $this->normalizeQuery($query);
 
         return $newUri;
     }
@@ -440,11 +436,9 @@ class Uri implements UriInterface
      */
     public function withFragment($fragment): Uri
     {
-        $fragment = $this->normalizeChars($fragment);
-
         $newUri = clone $this;
 
-        $newUri->fragment = $fragment;
+        $newUri->fragment = $this->normalizeChars($fragment);
 
         return $newUri;
     }

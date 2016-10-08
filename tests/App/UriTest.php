@@ -7,10 +7,6 @@ namespace Tests\App;
 use App\Uri;
 use InvalidArgumentException;
 
-/**
- * Class UriTest
- * @package Tests\App
- */
 class UriTest extends TestCase
 {
 
@@ -422,7 +418,7 @@ class UriTest extends TestCase
 
         $uri = new Uri($input_uri);
 
-        $method = self::getUriMethod('normalizeQuery');
+        $method = self::getUriMethod($uri, 'normalizeQuery');
         $result = $method->invokeArgs($uri, ['=']);
 
         self::assertEquals('', $result);
@@ -437,9 +433,62 @@ class UriTest extends TestCase
 
         $uri = new Uri($input_uri);
 
-        $methodValidateAuthority = self::getUriMethod('validateAuthority');
+        $methodValidateAuthority = self::getUriMethod($uri, 'validateAuthority');
         self::setPropertyValue($uri, 'path', '//foo');
 
         $methodValidateAuthority->invoke($uri);
+    }
+
+    public function testGetAuthorityFull()
+    {
+        $uri = new Uri('');
+        self::setPropertyValue($uri, 'userInfo', 'foo');
+        self::setPropertyValue($uri, 'port', 'bar');
+        self::setPropertyValue($uri, 'host', 'bazz');
+
+        static::assertEquals('foo@bazz:bar', $uri->getAuthority());
+    }
+
+    public function testGetAuthorityEmptyValues()
+    {
+        $uri = new Uri('');
+        self::setPropertyValue($uri, 'userInfo', '');
+        self::setPropertyValue($uri, 'port', '');
+        self::setPropertyValue($uri, 'host', '');
+
+        static::assertEquals('', $uri->getAuthority());
+    }
+
+    public function testGetAuthorityWithoutUserInfoAndPort()
+    {
+        $uri = new Uri('');
+        self::setPropertyValue($uri, 'userInfo', '');
+        self::setPropertyValue($uri, 'port', '');
+        self::setPropertyValue($uri, 'host', 'exampleHost');
+
+        static::assertEquals('exampleHost', $uri->getAuthority());
+    }
+
+    public function testToString()
+    {
+        $uri = $this->getMockBuilder('App\Uri')
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $uri->expects($this->once())
+            ->method('getAuthority')
+            ->willReturn('example.com');
+
+        var_dump($uri->getAuthority());
+
+        self::setPropertyValue($uri, 'scheme', 'http');
+        self::setPropertyValue($uri, 'path', 'foo');
+        self::setPropertyValue($uri, 'query', 'pi=3.14');
+        self::setPropertyValue($uri, 'fragment', 'bar');
+
+
+        var_dump($uri->getScheme());
+
+        static::assertEquals('http://example.com/foo?pi=3.14#bar', (string)$uri);
     }
 }
