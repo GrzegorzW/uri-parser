@@ -99,17 +99,27 @@ class UriParserTest extends TestCase
 
     public function testParseBasicOperations()
     {
+        $parser = new UriParser();
+
         $fragmentExtractor = $this->getMockBuilder(FragmentExtractor::class)
             ->setMethods(['setSuccessor', 'process'])
             ->getMock();
 
         $fragmentExtractor->expects(static::exactly(7))
-            ->method('setSuccessor');
+            ->method('setSuccessor')
+            ->withConsecutive(
+                [static::getPropertyValue($parser, 'queryExtractor')],
+                [static::getPropertyValue($parser, 'schemeExtractor')],
+                [static::getPropertyValue($parser, 'pathExtractor')],
+                [static::getPropertyValue($parser, 'portExtractor')],
+                [static::getPropertyValue($parser, 'userExtractor')],
+                [static::getPropertyValue($parser, 'passExtractor')],
+                [static::getPropertyValue($parser, 'hostExtractor')]
+            );
 
         $fragmentExtractor->expects(static::once())
             ->method('process');
 
-        $parser = new UriParser();
         static::setPropertyValue($parser, 'fragmentExtractor', $fragmentExtractor);
 
         $components = $parser->parse('https://user:pass@example.org:80/path/123?search=baz#bar');
