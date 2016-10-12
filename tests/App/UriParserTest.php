@@ -4,67 +4,116 @@ declare(strict_types = 1);
 
 namespace Tests\App;
 
+use App\Extractors\FragmentExtractor;
 use App\UriParser;
-use InvalidArgumentException;
 
 class UriParserTest extends TestCase
 {
 
-//'https://user:pass@example.org:80/path/123?search=baz#bar'
-
-    public function testUriParserScheme()
+    public function urlProvider()
     {
-        $uriParser = new UriParser();
-        $parsed = $uriParser->parse('https://user:pass@example.org:80/path/123?search=baz#bar');
-
-        static::assertEquals('https', $parsed['scheme']);
+        return [
+            ['http://example.com', [
+                'scheme' =>'http',
+                'host' => 'example.com'
+            ]],
+            ['http://example.com:80', [
+                'scheme' =>'http',
+                'host' => 'example.com',
+                'port' => '80'
+            ]],
+            ['http://example.com:80/path/to', [
+                'scheme' =>'http',
+                'host' => 'example.com',
+                'port' => '80',
+                'path' => '/path/to'
+            ]],
+            ['http://example.com:80/path/to?a=1&b=2', [
+                'scheme' =>'http',
+                'host' => 'example.com',
+                'port' => '80',
+                'path' => '/path/to',
+                'query' => 'a=1&b=2'
+            ]],
+            ['http://example.com:80/path/to?a=1&b=2#bar', [
+                'scheme' =>'http',
+                'host' => 'example.com',
+                'port' => '80',
+                'path' => '/path/to',
+                'query' => 'a=1&b=2',
+                'fragment' => 'bar'
+            ]],
+            ['http://awesome_user@example.com:80/path/to?a=1&b=2#bar', [
+                'user' => 'awesome_user',
+                'scheme' =>'http',
+                'host' => 'example.com',
+                'port' => '80',
+                'path' => '/path/to',
+                'query' => 'a=1&b=2',
+                'fragment' => 'bar'
+            ]],
+            ['http://awesome_user:secret@example.com:80/path/to?a=1&b=2#bar', [
+                'user' => 'awesome_user',
+                'pass' => 'secret',
+                'scheme' =>'http',
+                'host' => 'example.com',
+                'port' => '80',
+                'path' => '/path/to',
+                'query' => 'a=1&b=2',
+                'fragment' => 'bar'
+            ]],
+            ['http://localhost', [
+                'scheme' =>'http',
+                'host' => 'localhost'
+            ]],
+            ['http://127.0.0.1', [
+                'scheme' =>'http',
+                'host' => '127.0.0.1'
+            ]],
+            ['http://127.0.0.1:8888', [
+                'scheme' =>'http',
+                'host' => '127.0.0.1',
+                'port' => '8888'
+            ]],
+            ['ftp://127.0.0.1:8888', [
+                'scheme' =>'ftp',
+                'host' => '127.0.0.1',
+                'port' => '8888'
+            ]]
+        ];
     }
 
     /**
-     * @expectedException InvalidArgumentException
+     * @dataProvider urlProvider
+     * @param $url
+     * @param $expectedComponents
      */
-    public function testUriParserSchemeInvalidChar()
+    public function testParse($url, $expectedComponents)
     {
-        $uriParser = new UriParser();
-        $uriParser->parse('htt ps://user:pass@example.org:80/path/123?search=baz#bar');
+        $parser = new UriParser();
+
+        $parsedComponents = $parser->parse($url);
+
+        static::assertEquals($expectedComponents, $parsedComponents);
     }
 
-    /**
-     * @expectedException InvalidArgumentException
-     */
-    public function testUriParserSchemeInvalidFirstChar()
+    public function testParseBasicOperations()
     {
-        $uriParser = new UriParser();
-        $uriParser->parse('1https://user:pass@example.org:80/path/123?search=baz#bar');
-    }
+        $fragmentExtractor = $this->getMockBuilder(FragmentExtractor::class)
+            ->setMethods(['setSuccessor', 'process'])
+            ->getMock();
 
-    /**
-     * @expectedException InvalidArgumentException
-     */
-    public function testUriParserSchemeMissingScheme()
-    {
-        $uriParser = new UriParser();
-        $uriParser->parse('://user:pass@example.org:80/path/123?search=baz#bar');
-    }
+        $fragmentExtractor->expects(static::exactly(7))
+            ->method('setSuccessor');
 
-    public function testUriParserHost()
-    {
-        $uriParser = new UriParser();
-        $parsed = $uriParser->parse('https://user:pass@example.org:80/path/123?search=baz#bar');
+        $fragmentExtractor->expects(static::once())
+            ->method('process');
 
+        $parser = new UriParser();
+        static::setPropertyValue($parser, 'fragmentExtractor', $fragmentExtractor);
 
-//        $a = 'https://example.org:80/path';
-//        $b = 'https://user:pass@example.org:80/path';
-//        $c = 'https://user:pass@example.org/path';
-//        $d = 'https://user:pass@example.org:80/path';
-
-
-        $pattern = '~^(?P<scheme>.+?)(?=:)~';
-
-        preg_match($pattern, 'https://user:pass@example.org:80/path/123?search=baz#bar', $matches);
-        var_dump($matches);
-
-        static::assertEquals('example.org', $parsed['host']);
+        $components = $parser->parse('https://user:pass@example.org:80/path/123?search=baz#bar');
+        static::assertEmpty($components);
     }
 
 }

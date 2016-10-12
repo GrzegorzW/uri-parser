@@ -4,7 +4,15 @@ declare(strict_types = 1);
 
 namespace App;
 
-use App\Components\AbstractComponent;
+use App\Components\Components;
+use App\Extractors\FragmentExtractor;
+use App\Extractors\HostExtractor;
+use App\Extractors\PassExtractor;
+use App\Extractors\PathExtractor;
+use App\Extractors\PortExtractor;
+use App\Extractors\QueryExtractor;
+use App\Extractors\SchemeExtractor;
+use App\Extractors\UserExtractor;
 
 /**
  * Class UriParser
@@ -12,14 +20,26 @@ use App\Components\AbstractComponent;
  */
 class UriParser implements UriParserInterface
 {
-//    protected $fragmentRegex = '(?P<fragment>(?<=#).*)';
-//
-//    protected $authorityRegex = '(?P<authority>(?<=//)[^/\?#]*)';
-//    protected $userRegex = '(?P<user>[^:]*)';
-//    protected $passRegex = '(?P<pass>(?<=:)[^@]*)';
-//    protected $portRegex = '(?P<port>(?<=:)[0-9]+)';
+    private $fragmentExtractor;
+    private $queryExtractor;
+    private $schemeExtractor;
+    private $pathExtractor;
+    private $portExtractor;
+    private $userExtractor;
+    private $passExtractor;
+    private $hostExtractor;
 
-    private $components = [];
+    public function __construct()
+    {
+        $this->fragmentExtractor = new FragmentExtractor();
+        $this->queryExtractor = new QueryExtractor();
+        $this->schemeExtractor = new SchemeExtractor();
+        $this->pathExtractor = new PathExtractor();
+        $this->portExtractor = new PortExtractor();
+        $this->userExtractor = new UserExtractor();
+        $this->passExtractor = new PassExtractor();
+        $this->hostExtractor = new HostExtractor();
+    }
 
     /**
      * @param string $url
@@ -27,21 +47,18 @@ class UriParser implements UriParserInterface
      */
     public function parse(string $url): array
     {
-        $result = [];
+        $this->fragmentExtractor->setSuccessor($this->queryExtractor);
+        $this->fragmentExtractor->setSuccessor($this->schemeExtractor);
+        $this->fragmentExtractor->setSuccessor($this->pathExtractor);
+        $this->fragmentExtractor->setSuccessor($this->portExtractor);
+        $this->fragmentExtractor->setSuccessor($this->userExtractor);
+        $this->fragmentExtractor->setSuccessor($this->passExtractor);
+        $this->fragmentExtractor->setSuccessor($this->hostExtractor);
 
-        /** @var AbstractComponent $component */
-        foreach ($this->components as $component) {
-            $value = $component->extract($url);
-            if ($value) {
-                $result[$component->getName()] = $value;
-            }
-        }
+        $components = new Components();
+        $this->fragmentExtractor->process($url, $components);
 
-        return $result;
+        return $components->getComponents();
     }
 
-    public function addComponent(AbstractComponent $component)
-    {
-        $this->components[] = $component;
-    }
 }

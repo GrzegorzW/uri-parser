@@ -5,19 +5,26 @@ declare(strict_types = 1);
 namespace Tests\App;
 
 use App\Uri;
+use App\UriParser;
 use InvalidArgumentException;
 
 class UriTest extends TestCase
 {
-
     public function testToStringScheme()
     {
         $expectedComponent = 'https';
         $input_uri = $expectedComponent . '://user:pass@example.org:443/path/123?search=baz#bar';
 
-        $uri = new Uri($input_uri);
+        $uri = new Uri($this->parse($input_uri));
 
         static::assertEquals($expectedComponent, $uri->getScheme());
+    }
+
+    public function parse(string $url): array
+    {
+        $parser = new UriParser();
+
+        return $parser->parse($url);
     }
 
     public function testToStringAuthority()
@@ -26,7 +33,7 @@ class UriTest extends TestCase
         $expectedComponent = 'user:pass@example.org';
         $input_uri = 'https://' . $component . '/example-path/123?search=baz#bar';
 
-        $uri = new Uri($input_uri);
+        $uri = new Uri($this->parse($input_uri));
 
         static::assertEquals($expectedComponent, $uri->getAuthority());
     }
@@ -36,7 +43,7 @@ class UriTest extends TestCase
         $expectedComponent = '/example-path/123';
         $input_uri = 'https://user:pass@example.org:443' . $expectedComponent . '?search=baz#bar';
 
-        $uri = new Uri($input_uri);
+        $uri = new Uri($this->parse($input_uri));
 
         static::assertEquals($expectedComponent, $uri->getPath());
     }
@@ -46,7 +53,7 @@ class UriTest extends TestCase
         $expectedComponent = 'search=baz';
         $input_uri = 'https://user:pass@example.org:443/path/123?' . $expectedComponent . '#bar';
 
-        $uri = new Uri($input_uri);
+        $uri = new Uri($this->parse($input_uri));
 
         static::assertEquals($expectedComponent, $uri->getQuery());
     }
@@ -56,7 +63,7 @@ class UriTest extends TestCase
         $expectedComponent = 'bar';
         $input_uri = 'https://user:pass@example.org:443/path/123?search=baz#' . $expectedComponent;
 
-        $uri = new Uri($input_uri);
+        $uri = new Uri($this->parse($input_uri));
 
         static::assertEquals($expectedComponent, $uri->getFragment());
     }
@@ -66,19 +73,9 @@ class UriTest extends TestCase
         $input_uri = 'https://user:pass@example.org:443/path/123?search=baz#bar';
         $expected = 'https://user:pass@example.org/path/123?search=baz#bar';
 
-        $uri = new Uri($input_uri);
+        $uri = new Uri($this->parse($input_uri));
 
         static::assertEquals($expected, (string)$uri);
-    }
-
-    /**
-     * @expectedException InvalidArgumentException
-     */
-    public function testPasswordWithoutUser()
-    {
-        $input_uri = 'https://:pass@example.org:443/path/123?search=baz#bar';
-
-        new Uri($input_uri);
     }
 
     /**
@@ -89,7 +86,7 @@ class UriTest extends TestCase
         $port = 0;
         $input_uri = 'https://user:pass@example.org:' . $port . '/path/123?search=baz#bar';
 
-        new Uri($input_uri);
+        new Uri($this->parse($input_uri));
     }
 
     public function testMinPortValue()
@@ -97,7 +94,7 @@ class UriTest extends TestCase
         $port = 1;
         $input_uri = 'https://user:pass@example.org:' . $port . '/path/123?search=baz#bar';
 
-        $uri = new Uri($input_uri);
+        $uri = new Uri($this->parse($input_uri));
 
         static::assertEquals($port, $uri->getPort());
     }
@@ -107,7 +104,7 @@ class UriTest extends TestCase
         $port = 65535;
         $input_uri = 'https://user:pass@example.org:' . $port . '/path/123?search=baz#bar';
 
-        $uri = new Uri($input_uri);
+        $uri = new Uri($this->parse($input_uri));
 
         static::assertEquals($port, $uri->getPort());
     }
@@ -120,14 +117,14 @@ class UriTest extends TestCase
         $port = 65536;
         $input_uri = 'https://user:pass@example.org:' . $port . '/path/123?search=baz#bar';
 
-        new Uri($input_uri);
+        new Uri($this->parse($input_uri));
     }
 
     public function testWithSchemeRemoveScheme()
     {
         $input_uri = 'https://user:pass@example.org:443/path/123?search=baz#bar';
 
-        $old = new Uri($input_uri);
+        $old = new Uri($this->parse($input_uri));
         $new = $old->withScheme('');
 
         static::assertEquals('https', $old->getScheme());
@@ -138,7 +135,7 @@ class UriTest extends TestCase
     {
         $input_uri = 'https://user:pass@example.org:80/path/123?search=baz#bar';
 
-        $old = new Uri($input_uri);
+        $old = new Uri($this->parse($input_uri));
         $new = $old->withScheme('http');
 
         static::assertEquals('https', $old->getScheme());
@@ -153,7 +150,7 @@ class UriTest extends TestCase
         $pass = 'pass';
         $input_uri = 'https://example.org:80/path/123?search=baz#bar';
 
-        $old = new Uri($input_uri);
+        $old = new Uri($this->parse($input_uri));
         $new = $old->withUserInfo($user, $pass);
 
         static::assertEquals('', $old->getUserInfo());
@@ -164,7 +161,7 @@ class UriTest extends TestCase
     {
         $input_uri = 'https://user:pass@example.org:80/path/123?search=baz#bar';
 
-        $old = new Uri($input_uri);
+        $old = new Uri($this->parse($input_uri));
         $new = $old->withUserInfo('');
 
         static::assertEquals('user:pass', $old->getUserInfo());
@@ -176,7 +173,7 @@ class UriTest extends TestCase
         $user = 'user';
         $input_uri = 'https://example.org:80/path/123?search=baz#bar';
 
-        $old = new Uri($input_uri);
+        $old = new Uri($this->parse($input_uri));
         $new = $old->withUserInfo($user);
 
         static::assertEquals('', $old->getUserInfo());
@@ -192,7 +189,7 @@ class UriTest extends TestCase
         $pass = 'pass';
         $input_uri = 'https://example.org:80/path/123?search=baz#bar';
 
-        $old = new Uri($input_uri);
+        $old = new Uri($this->parse($input_uri));
         $old->withUserInfo($user, $pass);
     }
 
@@ -201,7 +198,7 @@ class UriTest extends TestCase
         $newHost = 'example2.com';
         $input_uri = 'https://example.org:80/path/123?search=baz#bar';
 
-        $old = new Uri($input_uri);
+        $old = new Uri($this->parse($input_uri));
         $new = $old->withHost($newHost);
 
         static::assertEquals('example.org', $old->getHost());
@@ -213,7 +210,7 @@ class UriTest extends TestCase
         $newHost = '';
         $input_uri = 'https://example.org:80/path/123?search=baz#bar';
 
-        $old = new Uri($input_uri);
+        $old = new Uri($this->parse($input_uri));
         $new = $old->withHost($newHost);
 
         static::assertEquals('example.org', $old->getHost());
@@ -225,7 +222,7 @@ class UriTest extends TestCase
         $newPort = 100;
         $input_uri = 'https://example.org:80/path/123?search=baz#bar';
 
-        $old = new Uri($input_uri);
+        $old = new Uri($this->parse($input_uri));
         $new = $old->withPort($newPort);
 
         static::assertEquals(80, $old->getPort());
@@ -237,7 +234,7 @@ class UriTest extends TestCase
         $newPort = 443;
         $input_uri = 'https://example.org:80/path/123?search=baz#bar';
 
-        $old = new Uri($input_uri);
+        $old = new Uri($this->parse($input_uri));
         $new = $old->withPort($newPort);
 
         static::assertEquals(80, $old->getPort());
@@ -249,7 +246,7 @@ class UriTest extends TestCase
         $newPort = 0;
         $input_uri = 'https://example.org:80/path/123?search=baz#bar';
 
-        $old = new Uri($input_uri);
+        $old = new Uri($this->parse($input_uri));
         $new = $old->withPort($newPort);
 
         static::assertEquals(80, $old->getPort());
@@ -264,7 +261,7 @@ class UriTest extends TestCase
         $newPort = -1;
         $input_uri = 'https://example.org:80/path/123?search=baz#bar';
 
-        $old = new Uri($input_uri);
+        $old = new Uri($this->parse($input_uri));
         $old->withPort($newPort);
     }
 
@@ -276,7 +273,7 @@ class UriTest extends TestCase
         $newPort = 65536;
         $input_uri = 'https://example.org:80/path/123?search=baz#bar';
 
-        $old = new Uri($input_uri);
+        $old = new Uri($this->parse($input_uri));
         $old->withPort($newPort);
     }
 
@@ -285,7 +282,7 @@ class UriTest extends TestCase
         $newPort = 1;
         $input_uri = 'https://example.org:80/path/123?search=baz#bar';
 
-        $old = new Uri($input_uri);
+        $old = new Uri($this->parse($input_uri));
         $new = $old->withPort($newPort);
 
         static::assertEquals(80, $old->getPort());
@@ -297,7 +294,7 @@ class UriTest extends TestCase
         $newPort = 65535;
         $input_uri = 'https://example.org:80/path/123?search=baz#bar';
 
-        $old = new Uri($input_uri);
+        $old = new Uri($this->parse($input_uri));
         $new = $old->withPort($newPort);
 
         static::assertEquals(80, $old->getPort());
@@ -309,7 +306,7 @@ class UriTest extends TestCase
         $newPath = '/foo/bar';
         $input_uri = 'https://example.org:80/path/123?search=baz#bar';
 
-        $old = new Uri($input_uri);
+        $old = new Uri($this->parse($input_uri));
         $new = $old->withPath($newPath);
 
         static::assertEquals('/path/123', $old->getPath());
@@ -321,7 +318,7 @@ class UriTest extends TestCase
         $newPath = '';
         $input_uri = 'https://example.org:80/path/123?search=baz#bar';
 
-        $old = new Uri($input_uri);
+        $old = new Uri($this->parse($input_uri));
         $new = $old->withPath($newPath);
 
         static::assertEquals('/path/123', $old->getPath());
@@ -333,7 +330,7 @@ class UriTest extends TestCase
         $newPath = '/foo/ba! r';
         $input_uri = 'https://example.org:80/path/123?search=baz#bar';
 
-        $old = new Uri($input_uri);
+        $old = new Uri($this->parse($input_uri));
         $new = $old->withPath($newPath);
 
         static::assertEquals('/path/123', $old->getPath());
@@ -348,7 +345,7 @@ class UriTest extends TestCase
         $newPath = 'foo/bar';
         $input_uri = 'https://example.org:80/path/123?search=baz#bar';
 
-        $old = new Uri($input_uri);
+        $old = new Uri($this->parse($input_uri));
         $old->withPath($newPath);
     }
 
@@ -357,7 +354,7 @@ class UriTest extends TestCase
         $newQuery = 'search=buzz';
         $input_uri = 'https://example.org:80/path/123?search=baz#bar';
 
-        $old = new Uri($input_uri);
+        $old = new Uri($this->parse($input_uri));
         $new = $old->withQuery($newQuery);
 
         static::assertEquals('search=baz', $old->getQuery());
@@ -369,7 +366,7 @@ class UriTest extends TestCase
         $newQuery = 'sear!ch=buz z';
         $input_uri = 'https://example.org:80/path/123?search=baz#bar';
 
-        $old = new Uri($input_uri);
+        $old = new Uri($this->parse($input_uri));
         $new = $old->withQuery($newQuery);
 
         static::assertEquals('search=baz', $old->getQuery());
@@ -381,7 +378,7 @@ class UriTest extends TestCase
         $newQuery = '';
         $input_uri = 'https://example.org:80/path/123?search=baz#bar';
 
-        $old = new Uri($input_uri);
+        $old = new Uri($this->parse($input_uri));
         $new = $old->withQuery($newQuery);
 
         static::assertEquals('search=baz', $old->getQuery());
@@ -393,7 +390,7 @@ class UriTest extends TestCase
         $newFragment = 'bizz';
         $input_uri = 'https://example.org:80/path/123?search=baz#bar';
 
-        $old = new Uri($input_uri);
+        $old = new Uri($this->parse($input_uri));
         $new = $old->withFragment($newFragment);
 
         static::assertEquals('bar', $old->getFragment());
@@ -405,7 +402,7 @@ class UriTest extends TestCase
         $newFragment = '';
         $input_uri = 'https://example.org:80/path/123?search=baz#bar';
 
-        $old = new Uri($input_uri);
+        $old = new Uri($this->parse($input_uri));
         $new = $old->withFragment($newFragment);
 
         static::assertEquals('bar', $old->getFragment());
@@ -416,9 +413,9 @@ class UriTest extends TestCase
     {
         $input_uri = 'https://example.org:80/path/123?search=baz#bar';
 
-        $uri = new Uri($input_uri);
+        $uri = new Uri($this->parse($input_uri));
 
-        $method = self::getUriMethod($uri, 'normalizeQuery');
+        $method = self::getMethod($uri, 'normalizeQuery');
         $result = $method->invokeArgs($uri, ['=']);
 
         self::assertEquals('', $result);
@@ -431,9 +428,9 @@ class UriTest extends TestCase
     {
         $input_uri = '/path/123?search=baz#bar';
 
-        $uri = new Uri($input_uri);
+        $uri = new Uri($this->parse($input_uri));
 
-        $methodValidateAuthority = self::getUriMethod($uri, 'validateAuthority');
+        $methodValidateAuthority = self::getMethod($uri, 'validateAuthority');
         self::setPropertyValue($uri, 'path', '//foo');
 
         $methodValidateAuthority->invoke($uri);
@@ -441,7 +438,7 @@ class UriTest extends TestCase
 
     public function testGetAuthorityFull()
     {
-        $uri = new Uri('');
+        $uri = new Uri([]);
         self::setPropertyValue($uri, 'userInfo', 'foo');
         self::setPropertyValue($uri, 'port', 'bar');
         self::setPropertyValue($uri, 'host', 'bazz');
@@ -451,7 +448,7 @@ class UriTest extends TestCase
 
     public function testGetAuthorityEmptyValues()
     {
-        $uri = new Uri('');
+        $uri = new Uri([]);
         self::setPropertyValue($uri, 'userInfo', '');
         self::setPropertyValue($uri, 'port', '');
         self::setPropertyValue($uri, 'host', '');
@@ -461,7 +458,7 @@ class UriTest extends TestCase
 
     public function testGetAuthorityWithoutUserInfoAndPort()
     {
-        $uri = new Uri('');
+        $uri = new Uri([]);
         self::setPropertyValue($uri, 'userInfo', '');
         self::setPropertyValue($uri, 'port', '');
         self::setPropertyValue($uri, 'host', 'exampleHost');
@@ -471,24 +468,65 @@ class UriTest extends TestCase
 
     public function testToString()
     {
-        $uri = $this->getMockBuilder('App\Uri')
+        $uri = $this->getMockBuilder(Uri::class)
             ->disableOriginalConstructor()
+            ->setMethods([
+                'getAuthority',
+                'getScheme',
+                'getPath',
+                'getQuery',
+                'getFragment',
+            ])
             ->getMock();
 
-        $uri->expects($this->once())
+        $uri->expects(static::once())
             ->method('getAuthority')
             ->willReturn('example.com');
 
-        var_dump($uri->getAuthority());
+        $uri->expects(static::once())
+            ->method('getScheme')
+            ->willReturn('http');
 
-        self::setPropertyValue($uri, 'scheme', 'http');
-        self::setPropertyValue($uri, 'path', 'foo');
-        self::setPropertyValue($uri, 'query', 'pi=3.14');
-        self::setPropertyValue($uri, 'fragment', 'bar');
+        $uri->expects(static::once())
+            ->method('getPath')
+            ->willReturn('/foo');
 
+        $uri->expects(static::once())
+            ->method('getQuery')
+            ->willReturn('pi=3.14');
 
-        var_dump($uri->getScheme());
+        $uri->expects(static::once())
+            ->method('getFragment')
+            ->willReturn('bar');
 
         static::assertEquals('http://example.com/foo?pi=3.14#bar', (string)$uri);
+    }
+
+    public function testProcessComponents()
+    {
+        $address = 'https://user:pass@example.org:443/path/123?search=baz#bar';
+
+        $uri = new Uri($this->parse($address));
+
+        static::assertEquals('https', static::getPropertyValue($uri, 'scheme'));
+        static::assertEquals('user:pass', static::getPropertyValue($uri, 'userInfo'));
+        static::assertEquals('example.org', static::getPropertyValue($uri, 'host'));
+        static::assertEquals('', static::getPropertyValue($uri, 'port'));
+        static::assertEquals('/path/123', static::getPropertyValue($uri, 'path'));
+        static::assertEquals('search=baz', static::getPropertyValue($uri, 'query'));
+        static::assertEquals('bar', static::getPropertyValue($uri, 'fragment'));
+    }
+
+    /**
+     * @expectedException InvalidArgumentException
+     */
+    public function testProcessComponentsThrowIfPassWithoutUser()
+    {
+        $address = 'https://user:pass@example.org:443/path/123?search=baz#bar';
+
+        $parsed = $this->parse($address);
+        unset($parsed['user']);
+
+        new Uri($parsed);
     }
 }

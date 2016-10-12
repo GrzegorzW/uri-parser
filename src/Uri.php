@@ -26,11 +26,6 @@ class Uri implements UriInterface
     const HTTP_DEFAULT_HOST = 'localhost';
 
     /**
-     * @var UriParser
-     */
-    protected $parser;
-
-    /**
      * Scheme component of the URI.
      *
      * @var string
@@ -77,18 +72,19 @@ class Uri implements UriInterface
      */
     private $fragment = '';
 
-    public function __construct(string $uri, UriParser $parser)
+    /**
+     * Uri constructor.
+     * @param array $components
+     *
+     * Allowed keys: scheme, host, port, user, pass, path, query, fragment
+     * @throws \InvalidArgumentException
+     */
+    public function __construct(array $components)
     {
-        $components = $this->parser->parse($uri);
-
-        if (false === $components) {
-            throw new InvalidArgumentException(sprintf('Unable to instantiate URI.'));
-        }
-
-        $this->setComponents($components);
+        $this->processComponents($components);
     }
 
-    protected function setComponents(array $components)
+    protected function processComponents(array $components)
     {
         if (isset($components['scheme'])) {
             $this->scheme = $this->normalizeScheme($components['scheme']);
@@ -129,7 +125,6 @@ class Uri implements UriInterface
         $this->addDefaultHost();
         $this->removeDefaultPort();
         $this->validateAuthority();
-
     }
 
     /**
@@ -158,17 +153,17 @@ class Uri implements UriInterface
     /**
      * @link https://www.ietf.org/rfc/rfc1700.txt
      *
-     * @param int $port
+     * @param $port
      * @return int
      * @throws \InvalidArgumentException
      */
-    protected function validatePort(int $port): int
+    protected function validatePort($port): int
     {
         if (1 > $port || $port > 65535) {
             throw new InvalidArgumentException('Port must be integer between 1 - 65535');
         }
 
-        return $port;
+        return (int)$port;
     }
 
     /**
@@ -280,14 +275,6 @@ class Uri implements UriInterface
     /**
      * {@inheritdoc}
      */
-    public function getScheme(): string
-    {
-        return $this->scheme;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function getUserInfo(): string
     {
         return $this->userInfo;
@@ -307,30 +294,6 @@ class Uri implements UriInterface
     public function getPort()
     {
         return $this->port;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getPath(): string
-    {
-        return $this->path;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getQuery(): string
-    {
-        return $this->query;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getFragment(): string
-    {
-        return $this->fragment;
     }
 
     /**
@@ -392,7 +355,7 @@ class Uri implements UriInterface
         $newPort = null;
 
         if ($port) {
-            $newPort = $this->validatePort((int)$port);
+            $newPort = $this->validatePort($port);
         }
 
         $newUri = clone $this;
@@ -452,24 +415,56 @@ class Uri implements UriInterface
     {
         $result = '';
 
-        if ($this->scheme) {
-            $result .= $this->scheme . ':';
+        if ($scheme = $this->getScheme()) {
+            $result .= $scheme . ':';
         }
 
-        if ($this->getAuthority()) {
-            $result .= '//' . $this->getAuthority();
+        if ($authority = $this->getAuthority()) {
+            $result .= '//' . $authority;
         }
 
-        $result .= $this->path;
+        $result .= $this->getPath();
 
-        if ($this->query) {
-            $result .= '?' . $this->query;
+        if ($query = $this->getQuery()) {
+            $result .= '?' . $query;
         }
 
-        if ($this->fragment) {
-            $result .= '#' . $this->fragment;
+        if ($fragment = $this->getFragment()) {
+            $result .= '#' . $fragment;
         }
 
         return $result;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getScheme(): string
+    {
+        return $this->scheme;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getPath(): string
+    {
+        return $this->path;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getQuery(): string
+    {
+        return $this->query;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getFragment(): string
+    {
+        return $this->fragment;
     }
 }
