@@ -86,23 +86,23 @@ class Uri implements UriInterface
 
     protected function processComponents(array $components)
     {
-        if (isset($components['scheme'])) {
+        if (array_key_exists('scheme', $components)) {
             $this->scheme = $this->normalizeScheme($components['scheme']);
         }
 
-        if (isset($components['host'])) {
+        if (array_key_exists('host', $components)) {
             $this->host = $this->normalizeHost($components['host']);
         }
 
-        if (isset($components['port'])) {
+        if (array_key_exists('port', $components)) {
             $this->port = $this->validatePort($components['port']);
         }
 
-        if (isset($components['user'])) {
+        if (array_key_exists('user', $components)) {
             $this->userInfo = $components['user'];
         }
 
-        if (isset($components['pass'])) {
+        if (array_key_exists('pass', $components)) {
             if (!$this->userInfo) {
                 throw new InvalidArgumentException('User cannot be empty if password is specified.');
             }
@@ -110,15 +110,15 @@ class Uri implements UriInterface
             $this->userInfo .= ':' . $components['pass'];
         }
 
-        if (isset($components['path'])) {
+        if (array_key_exists('path', $components)) {
             $this->path = $this->normalizePath($components['path']);
         }
 
-        if (isset($components['query'])) {
+        if (array_key_exists('query', $components)) {
             $this->query = $this->normalizeQuery($components['query']);
         }
 
-        if (isset($components['fragment'])) {
+        if (array_key_exists('fragment', $components)) {
             $this->fragment = $this->normalizeChars($components['fragment']);
         }
 
@@ -205,7 +205,7 @@ class Uri implements UriInterface
             }
 
             $keyValuePair = explode('=', $param, 2);
-            $parts[] = isset($keyValuePair[1]) ?
+            $parts[] = array_key_exists(1, $keyValuePair) ?
                 rawurlencode(urldecode($keyValuePair[0])) . '=' . rawurlencode(urldecode($keyValuePair[1])) :
                 $keyValuePair[0];
         }
