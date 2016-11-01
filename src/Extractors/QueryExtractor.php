@@ -6,17 +6,17 @@ namespace App\Extractors;
 
 class QueryExtractor extends AbstractExtractor
 {
-    public function getRegex(): string
+    protected function getRegex(): string
     {
         return '~(?<=\?).*~';
     }
 
-    public function getName(): string
+    protected function getName(): string
     {
         return 'query';
     }
 
-    public function trim(string $subject, string $match): string
+    protected function trim(string $subject, string $match): string
     {
         return str_replace('?' . $match, '', $subject);
     }
