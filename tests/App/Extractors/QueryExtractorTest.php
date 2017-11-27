@@ -35,5 +35,4 @@ class QueryExtractorTest extends TestCase
 
         static::assertEquals('https://example.org:80/path/123', $result);
     }
-
 }

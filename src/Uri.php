@@ -13,17 +13,14 @@ use Psr\Http\Message\UriInterface;
  */
 class Uri implements UriInterface
 {
-    /**
-     * TODO add more ports
-     */
-    const DEFAULT_PORTS = [
+    private const DEFAULT_PORTS = [
         'http' => 80,
         'https' => 443,
         'ftp' => 21,
         'ftps' => 990
     ];
 
-    const HTTP_DEFAULT_HOST = 'localhost';
+    private const HTTP_DEFAULT_HOST = 'localhost';
 
     /**
      * Scheme component of the URI.
@@ -74,9 +71,11 @@ class Uri implements UriInterface
 
     /**
      * Uri constructor.
+     *
      * @param array $components
      *
      * Allowed keys: scheme, host, port, user, pass, path, query, fragment
+     *
      * @throws \InvalidArgumentException
      */
     public function __construct(array $components)
@@ -84,7 +83,12 @@ class Uri implements UriInterface
         $this->processComponents($components);
     }
 
-    protected function processComponents(array $components)
+    /**
+     * @param array $components
+     *
+     * @throws \InvalidArgumentException
+     */
+    private function processComponents(array $components)
     {
         if (array_key_exists('scheme', $components)) {
             $this->scheme = $this->normalizeScheme($components['scheme']);
@@ -129,23 +133,30 @@ class Uri implements UriInterface
 
     /**
      * @param string $scheme
+     *
      * @return string
      */
-    protected function normalizeScheme(string $scheme): string
+    private function normalizeScheme(string $scheme): string
     {
         return strtolower($this->normalizeChars($scheme));
     }
 
-    protected function normalizeChars(string $component)
+    /**
+     * @param string $component
+     *
+     * @return mixed
+     */
+    private function normalizeChars(string $component): string
     {
         return filter_var($component, FILTER_SANITIZE_URL);
     }
 
     /**
      * @param string $host
+     *
      * @return string
      */
-    protected function normalizeHost(string $host): string
+    private function normalizeHost(string $host): string
     {
         return strtolower($this->normalizeChars($host));
     }
@@ -154,10 +165,12 @@ class Uri implements UriInterface
      * @link https://www.ietf.org/rfc/rfc1700.txt
      *
      * @param $port
+     *
      * @return int
+     *
      * @throws \InvalidArgumentException
      */
-    protected function validatePort($port): int
+    private function validatePort($port): int
     {
         if (1 > $port || $port > 65535) {
             throw new InvalidArgumentException('Port must be integer between 1 - 65535');
@@ -168,9 +181,10 @@ class Uri implements UriInterface
 
     /**
      * @param string $path
+     *
      * @return string
      */
-    protected function normalizePath(string $path): string
+    private function normalizePath(string $path): string
     {
         if ('' === $path) {
             return '';
@@ -188,9 +202,10 @@ class Uri implements UriInterface
 
     /**
      * @param string $query
+     *
      * @return string
      */
-    protected function normalizeQuery(string $query): string
+    private function normalizeQuery(string $query): string
     {
         if ('' === $query) {
             return '';
@@ -216,14 +231,14 @@ class Uri implements UriInterface
     /**
      * @link https://tools.ietf.org/html/rfc3986#section-3.2.2
      */
-    protected function addDefaultHost()
+    private function addDefaultHost()
     {
         if (!$this->host && ($this->scheme === 'http' || $this->scheme === 'https')) {
             $this->host = self::HTTP_DEFAULT_HOST;
         }
     }
 
-    protected function removeDefaultPort()
+    private function removeDefaultPort()
     {
         if ($this->port && $this->scheme && $this->port === self::DEFAULT_PORTS[$this->scheme]) {
             $this->port = '';
@@ -237,7 +252,7 @@ class Uri implements UriInterface
      *
      * @throws \InvalidArgumentException
      */
-    protected function validateAuthority()
+    private function validateAuthority()
     {
         if (!$this->getAuthority()) {
             if (0 === strpos($this->path, '//')) {
@@ -291,9 +306,9 @@ class Uri implements UriInterface
     /**
      * {@inheritdoc}
      */
-    public function getPort()
+    public function getPort(): ?int
     {
-        return $this->port;
+        return $this->port ? (int)$this->port : null;
     }
 
     /**
@@ -322,6 +337,7 @@ class Uri implements UriInterface
             if (!$userInfo) {
                 throw new InvalidArgumentException('Cannot set password without user.');
             }
+
             $userInfo .= ':' . $password;
         }
 

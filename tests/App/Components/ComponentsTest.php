@@ -16,9 +16,6 @@ class ComponentsTest extends TestCase
         static::assertEmpty($components->getComponents());
 
         $components->addComponent('foo', 'bar');
-        static::assertCount(1, $components->getComponents());
-        static::assertEquals('bar', $components->getComponents()['foo']);
-
         $components->addComponent('buzz', 'biz');
         static::assertCount(2, $components->getComponents());
         static::assertEquals('bar', $components->getComponents()['foo']);

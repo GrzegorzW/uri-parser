@@ -7,13 +7,23 @@ namespace App\Components;
 
 class Components implements ComponentsInterface
 {
+    /**
+     * @var string[]
+     */
     private $components = [];
 
-    public function addComponent(string $name, string $value)
+    /**
+     * @param string $name
+     * @param string $value
+     */
+    public function addComponent(string $name, string $value): void
     {
         $this->components[$name] = $value;
     }
 
+    /**
+     * @return string[]
+     */
     public function getComponents(): array
     {
         return $this->components;

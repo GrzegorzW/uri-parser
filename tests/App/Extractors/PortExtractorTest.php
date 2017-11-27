@@ -35,5 +35,4 @@ class PortExtractorTest extends TestCase
 
         static::assertEquals('https://example.org', $result);
     }
-
 }

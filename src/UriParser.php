@@ -14,19 +14,46 @@ use App\Extractors\QueryExtractor;
 use App\Extractors\SchemeExtractor;
 use App\Extractors\UserExtractor;
 
-/**
- * Class UriParser
- * @package App
- */
 class UriParser implements UriParserInterface
 {
+    /**
+     * @var FragmentExtractor
+     */
     private $fragmentExtractor;
+
+    /**
+     * @var QueryExtractor
+     */
     private $queryExtractor;
+
+    /**
+     * @var SchemeExtractor
+     */
     private $schemeExtractor;
+
+    /**
+     * @var PathExtractor
+     */
     private $pathExtractor;
+
+    /**
+     * @var PortExtractor
+     */
     private $portExtractor;
+
+    /**
+     * @var UserExtractor
+     */
     private $userExtractor;
+
+    /**
+     * @var PassExtractor
+     */
     private $passExtractor;
+
+    /**
+     * @var HostExtractor
+     */
     private $hostExtractor;
 
     public function __construct()
@@ -43,6 +70,7 @@ class UriParser implements UriParserInterface
 
     /**
      * @param string $url
+     *
      * @return array
      */
     public function parse(string $url): array
@@ -60,5 +88,4 @@ class UriParser implements UriParserInterface
 
         return $components->getComponents();
     }
-
 }

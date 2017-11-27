@@ -13,6 +13,7 @@ class TestCase extends \PHPUnit_Framework_TestCase
         $class = new ReflectionClass($instance);
         $method = $class->getMethod($name);
         $method->setAccessible(true);
+
         return $method;
     }
 
@@ -29,6 +30,7 @@ class TestCase extends \PHPUnit_Framework_TestCase
         $class = new ReflectionClass($instance);
         $property = $class->getProperty($name);
         $property->setAccessible(true);
+
         return $property->getValue($instance);
     }
 }

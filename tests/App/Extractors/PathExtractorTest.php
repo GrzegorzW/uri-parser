@@ -35,5 +35,4 @@ class PathExtractorTest extends TestCase
 
         static::assertEquals('https://example.org:80', $result);
     }
-
 }

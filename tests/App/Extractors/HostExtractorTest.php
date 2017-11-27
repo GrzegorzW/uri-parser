@@ -35,5 +35,4 @@ class HostExtractorTest extends TestCase
 
         static::assertEquals('', $result);
     }
-
 }

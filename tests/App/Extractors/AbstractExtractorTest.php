@@ -9,8 +9,6 @@ use App\Extractors\AbstractExtractor;
 use App\Extractors\FragmentExtractor;
 use App\Extractors\HostExtractor;
 use App\Extractors\QueryExtractor;
-use MongoDB\Driver\Query;
-use ReflectionMethod;
 use Tests\App\TestCase;
 
 class AbstractExtractorTest extends TestCase
@@ -108,5 +106,4 @@ class AbstractExtractorTest extends TestCase
 
         $abstractExtractor->process('http://example.com', $components);
     }
-
 }

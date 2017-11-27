@@ -46,5 +46,4 @@ class UserExtractorTest extends TestCase
 
         static::assertEquals('example.org', $result);
     }
-
 }

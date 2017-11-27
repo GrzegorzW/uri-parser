@@ -35,5 +35,4 @@ class PassExtractorTest extends TestCase
 
         static::assertEquals('example.org', $result);
     }
-
 }

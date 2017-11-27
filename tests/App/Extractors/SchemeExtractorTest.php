@@ -35,5 +35,4 @@ class SchemeExtractorTest extends TestCase
 
         static::assertEquals('example.org:80', $result);
     }
-
 }
